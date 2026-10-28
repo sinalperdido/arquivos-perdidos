@@ -34,10 +34,10 @@ button:disabled{opacity:.6;cursor:wait;transform:none}
 <div class="frame">
   <div class="top"><span><strong>HALLOWEEN.exe</strong> // ARQUIVOS PERDIDOS</span><span>ACESSO NÃO AUTORIZADO</span></div>
   <main>
-    <div class="kicker" id="kicker">SISTEMA DE ARQUIVOS // 02 CASOS RECUPERADOS</div>
+    <div class="kicker" id="kicker">SISTEMA DE ARQUIVOS // 03 CASOS RECUPERADOS</div>
     <h1 id="title">ALGO FOI<br>ENCONTRADO.<span class="cursor" aria-hidden="true"></span></h1>
-    <p class="lead" id="lead">Dois arquivos foram recuperados do servidor do estúdio. A origem é desconhecida. Abra um deles — o sistema decide qual.</p>
-    <div class="status" id="status"><div>ARQUIVOS DISPONÍVEIS: <span>02</span></div><div>INTEGRIDADE: <span>INSTÁVEL</span></div><div>AMEAÇA: <span>NÃO IDENTIFICADA</span></div></div>
+    <p class="lead" id="lead">Três arquivos foram recuperados do servidor do estúdio. A origem é desconhecida. Abra um deles — o sistema decide qual.</p>
+    <div class="status" id="status"><div>ARQUIVOS DISPONÍVEIS: <span>03</span></div><div>INTEGRIDADE: <span>INSTÁVEL</span></div><div>AMEAÇA: <span>NÃO IDENTIFICADA</span></div></div>
     <button id="open" type="button">[ LOCALIZAR ARQUIVO ]</button>
     <div class="scan"><span id="scanbar"></span></div>
     <div class="small" id="foot">NÃO FECHE ESTA JANELA // A CONEXÃO PODE NÃO SER SUA</div>
@@ -48,7 +48,8 @@ button:disabled{opacity:.6;cursor:wait;transform:none}
 'use strict';
 const games=[
  {name:'O CARTÃO FANTASMA',path:'jogos/cartao-fantasma/index.html'},
- {name:'A REDE DO ALÉM',path:'jogos/rede-do-alem/index.html'}
+ {name:'A REDE DO ALÉM',path:'jogos/rede-do-alem/index.html'},
+ {name:'VISITA INESPERADA',path:'jogos/visita-inesperada/index.html'}
 ];
 const button=document.getElementById('open'),title=document.getElementById('title'),lead=document.getElementById('lead'),kicker=document.getElementById('kicker'),status=document.getElementById('status'),foot=document.getElementById('foot'),bar=document.getElementById('scanbar');
 let busy=false;
