@@ -1,0 +1,20 @@
+HALLOWEEN.exe — Arquivos Perdidos (teste com 2 jogos)
+
+Conteúdo:
+- index.html: portal aleatório
+- jogos/cartao-fantasma/: Cartão Fantasma v3.15
+- jogos/rede-do-alem/: A Rede do Além v1.0
+
+Como testar localmente:
+1. Extraia o ZIP inteiro.
+2. Abra index.html por um servidor local (recomendado) ou publique a pasta inteira em GitHub Pages.
+3. Clique em [ LOCALIZAR ARQUIVO ]. O portal escolhe um jogo aleatoriamente e evita repetir o mesmo jogo duas vezes seguidas nesta sessão.
+
+Publicação:
+- Envie todos os arquivos e pastas mantendo a estrutura para um repositório GitHub.
+- Ative GitHub Pages para publicar a partir da branch principal e da raiz (/).
+- O QR Code deve apontar para a URL raiz do portal, não para os HTML dos jogos.
+- Não crie o QR Code nem o vídeo da TV até confirmar que os dois jogos funcionam online.
+
+Observação:
+Os jogos originais foram mantidos em pastas separadas para evitar conflito entre arquivos de vídeo com nomes iguais.
