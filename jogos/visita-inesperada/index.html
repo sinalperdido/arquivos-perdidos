@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HALLOWEEN.exe — Visita inesperada</title>
+<style>
+:root{--green:#69ff8c;--green2:#1c6b39;--dark:#030906;--panel:rgba(2,12,7,.94)}
+*{box-sizing:border-box} body{margin:0;background:#020503;color:var(--green);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+.app{width:min(1500px,100%);margin:auto;min-height:100vh;background:var(--dark);border-inline:1px solid #174a2a;box-shadow:0 0 30px #001b0b}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid var(--green2);background:linear-gradient(180deg,#06150b,#020704)}
+.kicker{font-size:12px;letter-spacing:.12em;color:#85c995}.heading{font-size:clamp(18px,3vw,32px);font-weight:800;letter-spacing:.05em;margin-top:5px}.timer{border:1px solid var(--green);border-radius:8px;padding:8px 14px;text-align:center;min-width:112px;box-shadow:0 0 12px #0a4922 inset}.time{font-size:clamp(22px,3vw,34px);font-weight:800}.timer small{display:block;font-size:10px;letter-spacing:.1em}
+main{padding:12px}.scene{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border:1px solid #22683a;border-radius:7px;background:#111 url('assets/cenario.png') center/cover no-repeat;touch-action:none;isolation:isolate}.scene:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.08),transparent 25%,rgba(0,0,0,.12));z-index:1}
+.hud{position:absolute;z-index:4;top:12px;left:14px;background:var(--panel);padding:8px 11px;border:1px solid #286a3b;border-radius:4px;font-size:clamp(10px,1.2vw,14px);letter-spacing:.06em}.hud.right{left:auto;right:14px}.dropzone{position:absolute;z-index:2;border:1px dashed rgba(105,255,140,.0);background:rgba(0,20,8,0);border-radius:8px;transition:.15s;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;color:transparent;font-size:clamp(9px,1vw,12px);text-align:center}.dropzone.show{border-color:rgba(105,255,140,.8);background:rgba(3,35,13,.34);color:#baffc9;text-shadow:0 1px 3px #000}.dropzone.over{background:rgba(41,255,105,.3);border:2px solid var(--green)}
+/* Destinos reposicionados sobre áreas plausíveis do cenário */
+#zone-camera{left:3%;top:35%;width:22%;height:22%}
+#zone-product{left:38%;top:27%;width:22%;height:23%}
+#zone-cables{left:63%;top:40%;width:13%;height:18%}
+#zone-box{left:6%;top:59%;width:13%;height:22%}
+#zone-mug{left:22%;top:49%;width:12%;height:16%}
+.item{position:absolute;z-index:5;display:flex;align-items:center;justify-content:center;flex-direction:column;width:clamp(62px,8vw,104px);height:clamp(64px,8.5vw,110px);border:1px solid #32804a;border-radius:8px;background:rgba(2,12,7,.94);box-shadow:0 5px 15px #0009,0 0 10px #0b3719;cursor:grab;user-select:none;touch-action:none;transition:box-shadow .15s,transform .15s; padding:5px}.item:active{cursor:grabbing}.item.dragging{z-index:10;transform:scale(1.06);box-shadow:0 8px 22px #000c,0 0 18px #3aff70}.item .emoji{font-size:clamp(28px,4vw,48px);line-height:1.15;filter:drop-shadow(0 2px 2px #000)}.item img.object-img{width:100%;height:72%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 3px #000)}.item .tripod-icon svg{width:clamp(30px,4vw,48px);height:clamp(30px,4vw,48px);color:#a6ffb7;display:block}.item .name{font-size:clamp(8px,.9vw,11px);text-align:center;color:#a6ffb7;letter-spacing:.03em;margin-top:4px}.item.done{opacity:.25;filter:grayscale(1);pointer-events:none;border-style:dashed}
+.inventory-wrap{margin:12px 0 4px;padding:12px;border:1px solid #293d2d;border-radius:8px;background:linear-gradient(180deg,#0b100c,#070a08)}.inventory-label{font-size:10px;letter-spacing:.16em;color:#9bbda2;margin:0 0 10px}.inventory{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.inventory .item{position:relative;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;width:100%;height:86px;min-width:0;cursor:grab}.inventory .item img.object-img{height:58%;max-width:70px}.inventory .item .name{font-size:10px}.scene .item{position:absolute;width:clamp(62px,8vw,104px);height:clamp(64px,8.5vw,110px)}.scene .item.done{opacity:.23;pointer-events:none}
+footer{padding:10px 14px 18px}.footerrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.pending{font-size:12px;letter-spacing:.07em}.actions{display:flex;gap:8px;flex-wrap:wrap}button{font:inherit;cursor:pointer;border:1px solid var(--green2);background:#06160b;color:var(--green);border-radius:4px;padding:9px 12px;font-size:12px}button:hover{background:#0d2a16;border-color:var(--green)}.hint{color:#8bb899;font-size:11px;margin-top:10px;line-height:1.5}.notice{display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.46);align-items:flex-end;justify-content:center;text-align:left;padding:18px}.notice.show{display:flex}.noticebox{width:min(440px,100%);border-left:2px solid #69ff8c;background:rgba(3,9,6,.94);padding:16px 18px;box-shadow:0 8px 28px #0008}.notice h2{font-size:clamp(17px,2.3vw,24px);font-weight:600;letter-spacing:.015em;margin:0 0 6px;color:#d5ffe0}.notice p{color:#a9b9ad;line-height:1.5;font-size:13px;margin:0 0 12px}.notice .sub{font-size:10px;color:#7f9b86;letter-spacing:.08em;margin-bottom:8px}
+/* Evento paranormal discreto: sem glitch ou pulsação */
+.item.returned{opacity:1!important;filter:none!important;pointer-events:none;border-color:#42634a;box-shadow:0 4px 14px #0009;animation:none}
+
+/* V16 — player final com a mesma moldura visual da introdução, sem fade entre clipes */
+#ending-player{position:fixed;inset:0;z-index:140;background:#030503;display:none;align-items:center;justify-content:center;color:#dce8de;padding:clamp(10px,3vw,28px)}
+#ending-player.show{display:flex}
+.ending-shell{width:min(1080px,100%);max-height:100%;border:1px solid #344c38;border-radius:12px;overflow:hidden;background:#080b09;box-shadow:0 25px 90px #000c;display:flex;flex-direction:column}
+.ending-top{padding:16px 22px;color:#a9c5ae;font-size:11px;letter-spacing:.2em;border-bottom:1px solid #263b2c;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-shrink:0}
+.ending-media{position:relative;background:#000;min-height:0;flex:1 1 auto;display:flex;align-items:center;justify-content:center;overflow:hidden}
+/* V21 — reserva altura durante a cartela para impedir que o player colapse quando os vídeos são ocultados */
+.ending-media:has(.ending-interstitial.show),.ending-media.interstitial-active{min-height:clamp(320px,58vh,680px);aspect-ratio:16/9}
+.ending-interstitial{box-sizing:border-box;overflow-y:auto}
+.ending-interstitial-inner{box-sizing:border-box;width:min(720px,100%);max-height:100%;margin:auto;padding:clamp(12px,2vw,24px) 0 clamp(12px,2vw,24px) clamp(18px,3vw,44px)}
+.ending-interstitial .eyebrow{line-height:1.5;overflow-wrap:anywhere}
+.ending-interstitial h2{overflow-wrap:anywhere}
+.ending-interstitial p{overflow-wrap:anywhere}
+.ending-interstitial .system-line{overflow-wrap:anywhere;line-height:1.6}
+.ending-media video{display:none;width:100%;height:auto;max-height:68vh;aspect-ratio:16/9;object-fit:contain;background:#000}
+.ending-media video.active{display:block}
+.ending-progress{height:2px;background:#1b2b1e;flex-shrink:0}.ending-progress span{display:block;height:100%;width:0;background:#9bc6a1}
+.ending-bottom{display:flex;align-items:center;min-height:44px;padding:12px 20px;color:#a9c5ae;font-size:11px;letter-spacing:.13em;flex-shrink:0}
+#ending-fallback{position:absolute;z-index:2;left:50%;bottom:20px;transform:translateX(-50%);display:none;background:rgba(5,10,6,.95);padding:14px 18px;border:1px solid #49684e;border-radius:8px;text-align:center;max-width:calc(100% - 24px)}
+#ending-fallback.show{display:block}#ending-fallback p{margin:0 0 10px;font-size:13px;color:#d6ead9}
+/* Chat de grupo inspirado no WhatsApp, com avatar ilustrado da chefia e entrada animada */
+.intro-card .message{max-width:850px;width:100%;border:1px solid #303b40;border-radius:15px;padding:0;background:#10191e;margin-top:22px;color:#e7edef;overflow:hidden;box-shadow:0 12px 34px rgba(0,0,0,.28);transform-origin:center;animation:chatPanelIn .55s cubic-bezier(.2,.8,.2,1) both}
+.chat-head{display:flex;align-items:center;gap:13px;padding:15px 18px;background:#202c33;border-bottom:1px solid #344047}
+.chat-avatar{width:46px;height:46px;flex:0 0 46px;border-radius:50%;overflow:hidden;background:#657e70;display:grid;place-items:center;box-shadow:0 0 0 1px #80948755}
+.chat-avatar svg{width:100%;height:100%;display:block}
+.chat-title{font:650 16px/1.25 system-ui,sans-serif;color:#e5ebee;letter-spacing:0}.chat-subtitle{font:13px/1.4 system-ui,sans-serif;color:#aebbc1;margin-top:3px;letter-spacing:0}
+.chat-tools{margin-left:auto;color:#aebbc1;font:22px/1 system-ui,sans-serif;letter-spacing:5px}
+.chat-body{min-height:190px;padding:25px clamp(16px,4vw,40px) 32px;background-color:#111a1f;background-image:repeating-linear-gradient(135deg,transparent 0 36px,rgba(255,255,255,.018) 36px 38px);display:flex;flex-direction:column;align-items:flex-start}
+.chat-date{align-self:center;padding:6px 13px;border-radius:9px;background:#1c2930;color:#b9c5ca;font:12px system-ui,sans-serif;margin-bottom:20px}
+.chat-bubble{width:min(100%,760px);background:#202c33;border-radius:0 12px 12px 12px;padding:18px 20px 10px;box-shadow:0 2px 2px #0002;opacity:0;transform:translateY(10px) scale(.985);animation:bubbleIn .48s .45s ease-out forwards}
+.chat-sender{font:600 12px system-ui,sans-serif;color:#9cc6ad;margin-bottom:8px}
+.intro-card .message small{display:none}
+.intro-card .message p{position:relative;padding:0;margin:0;font:clamp(15px,1.8vw,20px)/1.5 system-ui,sans-serif;color:#e4eaed;letter-spacing:0}
+.chat-meta{display:flex;justify-content:flex-end;align-items:center;gap:7px;margin-top:8px;color:#aebbc1;font:12px system-ui,sans-serif}
+.chat-checks{color:#91c9db;font-size:14px;letter-spacing:-4px;padding-right:3px}
+@keyframes chatPanelIn{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bubbleIn{to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.intro-card .message,.chat-bubble{animation:none;opacity:1;transform:none}}
+
+@media(max-width:640px){header{padding:12px}.scene{aspect-ratio:4/5;background-position:center}.hud{top:8px;left:8px}.hud.right{right:8px}.item{width:62px;height:68px}.item .emoji{font-size:28px}.item .name{font-size:8px}.inventory{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.inventory .item{height:76px}.scene .item{width:62px;height:68px}#zone-camera{left:2%;top:27%;width:28%;height:20%}#zone-product{left:35%;top:24%;width:30%;height:21%}#zone-cables{left:66%;top:39%;width:25%;height:16%}#zone-box{left:4%;top:58%;width:22%;height:19%}#zone-mug{left:28%;top:48%;width:19%;height:15%}.pending{font-size:10px}}
+
+.story-card{position:fixed;inset:0;z-index:120;background:rgba(1,5,3,.97);display:none;align-items:center;justify-content:center;padding:24px;text-align:center}
+.story-card.show{display:flex}.story-inner{width:min(680px,100%);border:1px solid #286a3b;background:#030906;padding:clamp(24px,5vw,52px);box-shadow:0 0 35px #001b0b}.story-tag{font-size:11px;letter-spacing:.18em;color:#85c995}.story-title{font-size:clamp(22px,4vw,36px);margin:18px 0;color:#d6ffe0}.story-copy{font-family:system-ui,sans-serif;line-height:1.6;color:#d2dfd5;font-size:clamp(15px,2vw,18px);white-space:pre-line}.story-inner button{margin-top:24px}.final-screen{position:fixed;inset:0;z-index:150;background:#000;color:#d9ffe0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px}.final-screen.show{display:flex}.final-screen .final-content{opacity:0;animation:finalFade 1.2s ease forwards}.final-screen .final-mark{font-size:clamp(25px,5vw,54px);letter-spacing:.18em}.final-screen p{font-size:12px;letter-spacing:.24em;color:#77a985;margin-top:22px}@keyframes finalFade{to{opacity:1}}.item.returned{opacity:1!important;filter:none!important;border-color:#78a783;box-shadow:0 0 12px #183b24;transition:left .8s ease,top .8s ease}
+
+/* V16 — player final com a mesma moldura visual da introdução, sem fade entre clipes */
+#ending-player{position:fixed;inset:0;z-index:140;background:#030503;display:none;align-items:center;justify-content:center;color:#dce8de;padding:clamp(10px,3vw,28px)}
+#ending-player.show{display:flex}
+.ending-shell{width:min(1080px,100%);max-height:100%;border:1px solid #344c38;border-radius:12px;overflow:hidden;background:#080b09;box-shadow:0 25px 90px #000c;display:flex;flex-direction:column}
+.ending-top{padding:16px 22px;color:#a9c5ae;font-size:11px;letter-spacing:.2em;border-bottom:1px solid #263b2c;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-shrink:0}
+.ending-media{position:relative;background:#000;min-height:0;display:flex;align-items:center;justify-content:center}
+.ending-media video{display:none;width:100%;height:auto;max-height:68vh;aspect-ratio:16/9;object-fit:contain;background:#000}
+.ending-media video.active{display:block}
+.ending-progress{height:2px;background:#1b2b1e;flex-shrink:0}.ending-progress span{display:block;height:100%;width:0;background:#9bc6a1}
+.ending-bottom{display:flex;align-items:center;min-height:44px;padding:12px 20px;color:#a9c5ae;font-size:11px;letter-spacing:.13em;flex-shrink:0}
+#ending-fallback{position:absolute;z-index:2;left:50%;bottom:20px;transform:translateX(-50%);display:none;background:rgba(5,10,6,.95);padding:14px 18px;border:1px solid #49684e;border-radius:8px;text-align:center;max-width:calc(100% - 24px)}
+#ending-fallback.show{display:block}#ending-fallback p{margin:0 0 10px;font-size:13px;color:#d6ead9}
+/* Chat de grupo inspirado no WhatsApp, com avatar ilustrado da chefia e entrada animada */
+.intro-card .message{max-width:850px;width:100%;border:1px solid #303b40;border-radius:15px;padding:0;background:#10191e;margin-top:22px;color:#e7edef;overflow:hidden;box-shadow:0 12px 34px rgba(0,0,0,.28);transform-origin:center;animation:chatPanelIn .55s cubic-bezier(.2,.8,.2,1) both}
+.chat-head{display:flex;align-items:center;gap:13px;padding:15px 18px;background:#202c33;border-bottom:1px solid #344047}
+.chat-avatar{width:46px;height:46px;flex:0 0 46px;border-radius:50%;overflow:hidden;background:#657e70;display:grid;place-items:center;box-shadow:0 0 0 1px #80948755}
+.chat-avatar svg{width:100%;height:100%;display:block}
+.chat-title{font:650 16px/1.25 system-ui,sans-serif;color:#e5ebee;letter-spacing:0}.chat-subtitle{font:13px/1.4 system-ui,sans-serif;color:#aebbc1;margin-top:3px;letter-spacing:0}
+.chat-tools{margin-left:auto;color:#aebbc1;font:22px/1 system-ui,sans-serif;letter-spacing:5px}
+.chat-body{min-height:190px;padding:25px clamp(16px,4vw,40px) 32px;background-color:#111a1f;background-image:repeating-linear-gradient(135deg,transparent 0 36px,rgba(255,255,255,.018) 36px 38px);display:flex;flex-direction:column;align-items:flex-start}
+.chat-date{align-self:center;padding:6px 13px;border-radius:9px;background:#1c2930;color:#b9c5ca;font:12px system-ui,sans-serif;margin-bottom:20px}
+.chat-bubble{width:min(100%,760px);background:#202c33;border-radius:0 12px 12px 12px;padding:18px 20px 10px;box-shadow:0 2px 2px #0002;opacity:0;transform:translateY(10px) scale(.985);animation:bubbleIn .48s .45s ease-out forwards}
+.chat-sender{font:600 12px system-ui,sans-serif;color:#9cc6ad;margin-bottom:8px}
+.intro-card .message small{display:none}
+.intro-card .message p{position:relative;padding:0;margin:0;font:clamp(15px,1.8vw,20px)/1.5 system-ui,sans-serif;color:#e4eaed;letter-spacing:0}
+.chat-meta{display:flex;justify-content:flex-end;align-items:center;gap:7px;margin-top:8px;color:#aebbc1;font:12px system-ui,sans-serif}
+.chat-checks{color:#91c9db;font-size:14px;letter-spacing:-4px;padding-right:3px}
+@keyframes chatPanelIn{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bubbleIn{to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.intro-card .message,.chat-bubble{animation:none;opacity:1;transform:none}}
+
+@media(max-width:640px){.story-inner{padding:24px 18px}}
+
+/* V8 — estética cinematográfica, cartelas legíveis e jogo refinado */
+:root{--green:#8bdfa0;--green2:#315c3b;--dark:#080b09;--panel:rgba(7,12,9,.92)}
+body{background:#050705;color:#dce8de;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;letter-spacing:.01em}
+.app{background:#080b09;border-color:#263b2c;box-shadow:0 18px 60px #000a}
+header{background:linear-gradient(120deg,#111b13,#080b09 68%);border-color:#263b2c}
+.kicker,.story-tag{color:#9bbda2;letter-spacing:.19em}
+.heading{font-family:ui-sans-serif,system-ui,sans-serif;letter-spacing:.1em;font-weight:700}
+.timer{border-color:#476a4d;box-shadow:none;background:#0b120d}.time{color:#d8f4dc}
+.scene{border-color:#344c38;border-radius:10px;box-shadow:0 12px 32px #0008;background-color:#141915}
+.scene:after{background:linear-gradient(180deg,rgba(0,0,0,.22),transparent 24%,transparent 70%,rgba(0,0,0,.24))}
+.hud{background:rgba(7,13,9,.84);border:1px solid #47634c;border-radius:6px;color:#d3e6d6;letter-spacing:.1em;backdrop-filter:blur(8px)}
+.item{background:rgba(9,15,10,.92);border:1px solid #536d57;border-radius:10px;box-shadow:0 8px 20px #0009;backdrop-filter:blur(5px)}
+.item .name{color:#d2e5d5;letter-spacing:.1em;font-weight:650}.item.done{opacity:.28}
+.dropzone.show{border-color:rgba(175,222,183,.72);background:rgba(15,35,19,.24);color:#e4f4e6;text-shadow:0 2px 4px #000;font-weight:650;letter-spacing:.06em}
+button{border-color:#49684e;background:#111a13;color:#d6ead9;border-radius:6px;padding:10px 15px;letter-spacing:.06em;transition:background .18s,border-color .18s,transform .18s}
+button:hover{background:#1a2a1d;border-color:#9bbda2;transform:translateY(-1px)}button:disabled{opacity:.5;cursor:wait;transform:none}
+.hint{color:#9cafa0;font-family:ui-sans-serif,system-ui,sans-serif;font-size:12px}
+.notice{align-items:center;justify-content:center;background:rgba(1,4,2,.72);backdrop-filter:blur(5px);padding:24px}
+.noticebox{width:min(540px,100%);border:1px solid #455e49;border-left:3px solid #9bc6a1;border-radius:8px;background:rgba(8,13,9,.97);padding:clamp(22px,4vw,36px);box-shadow:0 20px 70px #000b}
+.notice h2{font-family:ui-sans-serif,system-ui,sans-serif;font-size:clamp(20px,3vw,30px);letter-spacing:.04em}.notice p{font-family:ui-sans-serif,system-ui,sans-serif;color:#c6d4c9;font-size:15px;line-height:1.65}.notice .sub{letter-spacing:.17em}
+.story-card{background:rgba(3,6,4,.94);backdrop-filter:blur(10px)}.story-inner{border:1px solid #3c5941;border-radius:10px;background:linear-gradient(145deg,#101811,#070a08);box-shadow:0 24px 80px #000b;text-align:left}.story-title{font-family:ui-sans-serif,system-ui,sans-serif;font-weight:650;letter-spacing:.03em}.story-copy{font-size:clamp(16px,2vw,19px);color:#d7e2d9}.story-inner button{display:block;margin-left:auto}
+.intro-shell{width:min(1080px,100%);border:1px solid #344c38!important;border-radius:12px;overflow:hidden;background:#080b09!important;box-shadow:0 25px 90px #000c!important}
+.intro-top{padding:16px 22px;color:#a9c5ae;font-size:11px;letter-spacing:.2em;border-bottom:1px solid #263b2c;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.intro-media{position:relative;background:#000;min-height:200px}.intro-media video{display:block;width:100%;max-height:66vh;aspect-ratio:16/9;object-fit:contain;background:#000}
+.intro-bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 20px;flex-wrap:wrap}.intro-caption{font-size:11px;letter-spacing:.15em;color:#a9c5ae}.intro-progress{height:2px;background:#1b2b1e}.intro-progress span{display:block;height:100%;width:0;background:#9bc6a1;transition:width .25s}
+.intro-card{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:clamp(22px,5vw,64px);background:radial-gradient(ellipse at 50% 35%,#17251a 0%,#0b100c 56%,#050705 100%);text-align:left}.intro-card.photo-card{background:linear-gradient(90deg,rgba(2,8,4,.9),rgba(2,8,4,.5)),url('assets/cenario.png') center/cover no-repeat}
+.intro-card.show{display:flex}.intro-card-inner{width:min(720px,100%);border-left:2px solid #9bc6a1;padding:10px 0 10px clamp(20px,4vw,44px)}
+.intro-card .eyebrow{font-size:11px;letter-spacing:.2em;color:#a5c4aa;margin-bottom:24px}.intro-card h2{font-size:clamp(27px,5vw,52px);line-height:1.12;letter-spacing:-.035em;margin:0 0 24px;color:#f0f5f0;font-weight:650;max-width:650px}.intro-card p{font-family:ui-sans-serif,system-ui,sans-serif;font-size:clamp(16px,2.1vw,21px);line-height:1.7;color:#d1ded3;margin:0;max-width:650px}.intro-card .message{border:1px solid #455d49;border-radius:8px;padding:18px 20px;background:#0b120d;margin-top:20px;color:#e0ece2}.intro-card .message small{display:block;color:#9bbda2;letter-spacing:.15em;font-size:10px;margin-bottom:10px}.intro-card .message p{font-size:clamp(15px,1.8vw,18px)}
+/* V9 — mensagem digitada progressivamente, com cursor de terminal */
+#card-message-copy.typing::after,#card-title.typing::after{content:"▋";display:inline-block;margin-left:3px;color:#8bdfa0;animation:terminalBlink .72s steps(1,end) infinite}
+@keyframes terminalBlink{50%{opacity:0}}
+.intro-card .message{box-shadow:0 0 22px rgba(63,130,77,.06) inset}
+.intro-card .message small::before{content:"● ";color:#8bdfa0;animation:terminalBlink 1.2s steps(1,end) infinite}
+.video-transition{display:none}#ending-player{position:fixed;inset:0;z-index:140;background:#000;display:none;align-items:center;justify-content:center;color:#dce8de;padding:12px}#ending-player.show{display:flex}#ending-video{display:block;width:100%;height:100%;max-width:1600px;max-height:100vh;object-fit:contain;background:#000}#ending-fallback{position:absolute;z-index:2;left:50%;bottom:24px;transform:translateX(-50%);display:none;background:rgba(5,10,6,.92);padding:14px 18px;border:1px solid #49684e;border-radius:8px;text-align:center;max-width:calc(100% - 24px)}#ending-fallback.show{display:block}#ending-fallback p{margin:0 0 10px;font-size:13px;color:#d6ead9}.final-screen{background:#030603;overflow:hidden;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.final-screen:after{content:"";position:absolute;inset:18px;border:1px solid rgba(105,255,140,.22);pointer-events:none}.final-screen .final-mark{color:#9affad;text-shadow:0 0 18px rgba(105,255,140,.18);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em}.final-screen p{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#81a98a}.final-screen button{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.final-screen:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(37,58,40,.18),transparent 58%);pointer-events:none}.final-screen .final-content{position:relative;max-width:760px}.final-screen .final-mark{font-family:ui-sans-serif,system-ui,sans-serif;font-size:clamp(25px,5vw,54px);font-weight:600;letter-spacing:.18em}.final-screen p{font-family:ui-sans-serif,system-ui,sans-serif;letter-spacing:.2em;color:#8da991}
+
+/* V16 — player final com a mesma moldura visual da introdução, sem fade entre clipes */
+#ending-player{position:fixed;inset:0;z-index:140;background:#030503;display:none;align-items:center;justify-content:center;color:#dce8de;padding:clamp(10px,3vw,28px)}
+#ending-player.show{display:flex}
+.ending-shell{width:min(1080px,100%);max-height:100%;border:1px solid #344c38;border-radius:12px;overflow:hidden;background:#080b09;box-shadow:0 25px 90px #000c;display:flex;flex-direction:column}
+.ending-top{padding:16px 22px;color:#a9c5ae;font-size:11px;letter-spacing:.2em;border-bottom:1px solid #263b2c;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-shrink:0}
+.ending-media{position:relative;background:#000;min-height:0;display:flex;align-items:center;justify-content:center}
+.ending-media video{display:none;width:100%;height:auto;max-height:68vh;aspect-ratio:16/9;object-fit:contain;background:#000}
+.ending-media video.active{display:block}
+.ending-progress{height:2px;background:#1b2b1e;flex-shrink:0}.ending-progress span{display:block;height:100%;width:0;background:#9bc6a1}
+.ending-bottom{display:flex;align-items:center;min-height:44px;padding:12px 20px;color:#a9c5ae;font-size:11px;letter-spacing:.13em;flex-shrink:0}
+#ending-fallback{position:absolute;z-index:2;left:50%;bottom:20px;transform:translateX(-50%);display:none;background:rgba(5,10,6,.95);padding:14px 18px;border:1px solid #49684e;border-radius:8px;text-align:center;max-width:calc(100% - 24px)}
+#ending-fallback.show{display:block}#ending-fallback p{margin:0 0 10px;font-size:13px;color:#d6ead9}
+/* Chat de grupo inspirado no WhatsApp, com avatar ilustrado da chefia e entrada animada */
+.intro-card .message{max-width:850px;width:100%;border:1px solid #303b40;border-radius:15px;padding:0;background:#10191e;margin-top:22px;color:#e7edef;overflow:hidden;box-shadow:0 12px 34px rgba(0,0,0,.28);transform-origin:center;animation:chatPanelIn .55s cubic-bezier(.2,.8,.2,1) both}
+.chat-head{display:flex;align-items:center;gap:13px;padding:15px 18px;background:#202c33;border-bottom:1px solid #344047}
+.chat-avatar{width:46px;height:46px;flex:0 0 46px;border-radius:50%;overflow:hidden;background:#657e70;display:grid;place-items:center;box-shadow:0 0 0 1px #80948755}
+.chat-avatar svg{width:100%;height:100%;display:block}
+.chat-title{font:650 16px/1.25 system-ui,sans-serif;color:#e5ebee;letter-spacing:0}.chat-subtitle{font:13px/1.4 system-ui,sans-serif;color:#aebbc1;margin-top:3px;letter-spacing:0}
+.chat-tools{margin-left:auto;color:#aebbc1;font:22px/1 system-ui,sans-serif;letter-spacing:5px}
+.chat-body{min-height:190px;padding:25px clamp(16px,4vw,40px) 32px;background-color:#111a1f;background-image:repeating-linear-gradient(135deg,transparent 0 36px,rgba(255,255,255,.018) 36px 38px);display:flex;flex-direction:column;align-items:flex-start}
+.chat-date{align-self:center;padding:6px 13px;border-radius:9px;background:#1c2930;color:#b9c5ca;font:12px system-ui,sans-serif;margin-bottom:20px}
+.chat-bubble{width:min(100%,760px);background:#202c33;border-radius:0 12px 12px 12px;padding:18px 20px 10px;box-shadow:0 2px 2px #0002;opacity:0;transform:translateY(10px) scale(.985);animation:bubbleIn .48s .45s ease-out forwards}
+.chat-sender{font:600 12px system-ui,sans-serif;color:#9cc6ad;margin-bottom:8px}
+.intro-card .message small{display:none}
+.intro-card .message p{position:relative;padding:0;margin:0;font:clamp(15px,1.8vw,20px)/1.5 system-ui,sans-serif;color:#e4eaed;letter-spacing:0}
+.chat-meta{display:flex;justify-content:flex-end;align-items:center;gap:7px;margin-top:8px;color:#aebbc1;font:12px system-ui,sans-serif}
+.chat-checks{color:#91c9db;font-size:14px;letter-spacing:-4px;padding-right:3px}
+@keyframes chatPanelIn{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bubbleIn{to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.intro-card .message,.chat-bubble{animation:none;opacity:1;transform:none}}
+
+@media(max-width:640px){.inventory-wrap{padding:8px}.inventory-label{font-size:9px}.inventory .item .name{font-size:9px}.intro-top{padding:13px}.intro-media video{aspect-ratio:4/3;max-height:55vh}.intro-card{padding:22px}.intro-card .eyebrow{margin-bottom:15px}.intro-card h2{margin-bottom:16px}.intro-bottom{padding:12px}}
+
+/* V19 — mensagem estilo WhatsApp: sem filete vertical e avatar junto ao remetente */
+.intro-card-inner.no-rail{border-left:0;padding-left:0}
+.chat-head{padding-left:22px}
+.chat-sender-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.chat-sender-row .chat-avatar{width:38px;height:38px;flex-basis:38px}
+.chat-sender-row .chat-sender{margin:0;font-size:13px}
+.ending-interstitial{position:absolute;inset:0;z-index:3;display:none;align-items:center;justify-content:center;text-align:left;padding:clamp(22px,5vw,64px);background:radial-gradient(ellipse at 50% 35%,#17251a 0%,#0b100c 56%,#050705 100%);color:#e8f0e9}
+.ending-interstitial.show{display:flex}
+.ending-interstitial-inner{width:min(720px,100%);border-left:2px solid #9bc6a1;padding:10px 0 10px clamp(20px,4vw,44px)}
+.ending-interstitial .eyebrow{font-size:11px;letter-spacing:.2em;color:#a5c4aa;margin-bottom:22px}
+.ending-interstitial h2{font-size:clamp(28px,5vw,52px);line-height:1.1;letter-spacing:-.035em;margin:0 0 18px;font-weight:650}
+.ending-interstitial p{font:clamp(15px,2.1vw,21px)/1.6 system-ui,sans-serif;color:#d1ded3;margin:0;max-width:650px;opacity:0;transform:translateY(8px);animation:interstitialCopy .45s .8s ease-out forwards}
+.ending-interstitial .system-line{font-size:10px;letter-spacing:.16em;color:#8bdfa0;margin-top:24px;opacity:0;animation:interstitialCopy .45s 1.45s ease-out forwards}
+.ending-interstitial .alert-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ed5c55;margin-right:8px;animation:terminalBlink .72s steps(1,end) infinite}
+@keyframes interstitialCopy{to{opacity:1;transform:translateY(0)}}
+@media(max-width:640px){.chat-body{padding:20px 14px 24px}.chat-bubble{padding:14px}.chat-sender-row .chat-avatar{width:34px;height:34px;flex-basis:34px}.ending-interstitial{padding:22px}.ending-interstitial-inner{padding-left:18px}}
+/* V20 — buffer duplo para cortes secos sem tela preta entre os três primeiros vídeos */
+.intro-media{position:relative;width:100%;aspect-ratio:16/9;min-height:200px;max-height:66vh;overflow:hidden;background:#000}
+.intro-media video.intro-video{position:absolute;inset:0;width:100%;height:100%;max-height:66vh;aspect-ratio:16/9;object-fit:contain;background:#000;display:none}
+.intro-media video.intro-video.active{display:block}
+
+
+
+/* V22 — correção definitiva do player final: a área de mídia não pode colapsar quando os vídeos são ocultados durante a cartela. */
+#ending-player .ending-shell{width:min(1080px,100%);max-height:calc(100vh - 24px);}
+#ending-player .ending-media{position:relative;display:block;flex:0 0 auto;width:100%;height:min(68vh,56.25vw,680px);min-height:220px;aspect-ratio:16/9;overflow:hidden;background:#000;}
+#ending-player .ending-media video{position:absolute;inset:0;width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:contain;background:#000;}
+#ending-player .ending-media video:not(.active){display:none;}
+#ending-player .ending-media video.active{display:block;}
+#ending-player .ending-interstitial{position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;overflow:auto;}
+#ending-player .ending-bottom{flex:0 0 auto;min-height:44px;box-sizing:border-box;}
+@media(max-height:420px){#ending-player{padding:6px}#ending-player .ending-media{height:58vh;min-height:160px}#ending-player .ending-top{padding:9px 14px}#ending-player .ending-bottom{min-height:34px;padding:8px 14px}}
+</style></head>
+<body><div id="intro" style="position:fixed;inset:0;z-index:100;background:#030503;display:flex;align-items:center;justify-content:center;padding:clamp(10px,3vw,28px)"><div class="intro-shell"><div class="intro-top"><span>HALLOWEEN.exe / CASO 02</span><span id="intro-step">ARQUIVO 01 / 03</span></div><div class="intro-media"><video id="intro-video-a" class="intro-video active" playsinline preload="auto" poster="assets/cenario.png"></video><video id="intro-video-b" class="intro-video" playsinline preload="auto" poster="assets/cenario.png"></video><div id="intro-transition" class="video-transition"></div><div id="intro-card" class="intro-card"><div class="intro-card-inner"><div class="eyebrow" id="card-eyebrow">ANTES DA VISITA</div><h2 id="card-title">A pausa termina.</h2><p id="card-copy">...</p><div class="message" id="card-message" hidden>
+  <div class="chat-head">
+    <div><div class="chat-title">Grupo do estúdio</div><div class="chat-subtitle">9 participantes</div></div>
+    <div class="chat-tools" aria-hidden="true">⌕ ⋮</div>
+  </div>
+  <div class="chat-body"><div class="chat-date">HOJE · 15:32</div>
+    <div class="chat-bubble"><div class="chat-sender-row">
+      <div class="chat-avatar boss-avatar" aria-label="Avatar ilustrado da chefia" title="Chefia">
+        <svg viewBox="0 0 48 48" role="img" aria-hidden="true"><defs><clipPath id="bossClip"><circle cx="24" cy="24" r="24"/></clipPath></defs><g clip-path="url(#bossClip)"><rect width="48" height="48" fill="#61796c"/><path d="M5 50c1-11 8-17 19-17s18 6 19 17" fill="#172b25"/><path d="M15 19c0-9 4-13 10-13s10 5 10 13v7c-1 7-5 10-10 10s-10-4-10-10z" fill="#e8c5a8"/><path d="M14 20c-2-11 4-16 12-16 8 0 12 6 10 16l-3-5c-5 1-9-2-13-5l-4 10z" fill="#292321"/><path d="M14 22c0-3 2-5 5-5h4v8h-4c-3 0-5-1-5-3zm15-5h4c3 0 5 2 5 5s-2 3-5 3h-4z" fill="none" stroke="#252b2b" stroke-width="2"/><path d="M23 21h2" stroke="#252b2b" stroke-width="2"/><path d="M20 30q4 2 8 0" fill="none" stroke="#9c6258" stroke-width="1.5" stroke-linecap="round"/><path d="M17 36l7 5 7-5 4 14H13z" fill="#e0e7e0"/><path d="M19 37l5 4 5-4 3 13H16z" fill="#243b32"/></g></svg>
+      </div>
+      <div class="chat-sender">Chefia</div>
+    </div><p id="card-message-copy"></p><div class="chat-meta"><span>15:32</span><span class="chat-checks">✓✓</span></div></div>
+  </div>
+</div></div></div></div><div class="intro-progress"><span id="intro-progress"></span></div><div class="intro-bottom"><div class="intro-caption" id="intro-caption">CENA 01 — A PAUSA</div><div style="display:flex;gap:8px"><button id="start-game">CONTINUAR</button></div></div></div></div><div class="story-card" id="story-card" role="dialog" aria-modal="true"><div class="story-inner"><div class="story-tag" id="story-tag">HALLOWEEN.exe // CASO 02</div><h2 class="story-title" id="story-title">A VISITA ESTÁ CHEGANDO</h2><div class="story-copy" id="story-copy"></div><button id="story-action">CONTINUAR</button></div></div><div id="ending-player" aria-label="Cenas finais da história" aria-hidden="true"><div class="ending-shell"><div class="ending-top"><span>HALLOWEEN.exe / CASO 02</span><span id="ending-step">REGISTRO 01 / 02</span></div><div class="ending-media"><video id="ending-video-a" playsinline preload="auto" src="assets/videos/final-saida.mp4"></video><video id="ending-video-b" playsinline preload="auto" src="assets/videos/final-paranormal.mp4"></video><div id="ending-interstitial" class="ending-interstitial" aria-live="polite"><div class="ending-interstitial-inner"><div class="eyebrow"><span class="alert-dot"></span>HALLOWEEN.exe / SISTEMA DE SEGURANÇA</div><h2 id="interstitial-title">Alarme falso.</h2><p id="interstitial-copy">Mas foram detectadas outras atividades estranhas.</p><div class="system-line" id="interstitial-system">ANÁLISE DE REGISTRO INICIADA...</div></div></div><div id="ending-fallback"><p id="ending-fallback-text">A reprodução não começou automaticamente.</p><button id="ending-retry">REPRODUZIR CENA</button></div></div><div class="ending-progress"><span id="ending-progress-fill"></span></div><div class="ending-bottom"><span id="ending-caption">Os visitantes deixam o estúdio.</span></div></div></div><div class="final-screen" id="final-screen"><div class="final-content"><div class="final-mark">VISITA RECEBIDA.</div><p>HALLOWEEN.exe // REGISTRO ENCERRADO</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px"><a class="btn" id="final-mission-link" href="../ultima-missao/index.html" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:16px 24px;border:1px solid #8cff9d;border-radius:8px;background:#8cff9d;color:#061009;font-weight:800;letter-spacing:.04em;box-shadow:0 0 22px rgba(140,255,157,.12)">DESBLOQUEAR ÚLTIMA MISSÃO</a></div></div></div><div class="app">
+<header><div><div class="kicker">HALLOWEEN.exe // CASO 02</div><div class="heading">ORGANIZE O ESTÚDIO</div></div><div class="timer"><div id="time" class="time">01:30</div><small>TEMPO RESTANTE</small></div></header>
+<main><div class="scene" id="scene" aria-label="Cenário interativo do estúdio">
+<div class="hud">ARRASTE OS OBJETOS<br>PARA O LOCAL CORRETO</div><div class="hud right" id="status">SISTEMA ATIVO</div>
+<div class="dropzone" id="zone-camera" data-target="equipment">BANCADA DE EQUIPAMENTOS</div><div class="dropzone" id="zone-product" data-target="blender">MESA DE PRODUTO</div><div class="dropzone" id="zone-cables" data-target="cables">CARRINHO DE EQUIPAMENTOS</div><div class="dropzone" id="zone-box" data-target="box">CAIXAS / ARMAZENAMENTO</div><div class="dropzone" id="zone-mug" data-target="mug">MESA DE APOIO</div>
+<div class="notice" id="notice"><div class="noticebox"><div class="sub" id="notice-sub">HALLOWEEN.exe // CASO 02</div><h2 id="notice-title">ESTÚDIO ORGANIZADO</h2><p id="notice-text">Tudo pronto para a visita.</p><button id="continue">CONTINUAR</button></div></div>
+</div></main>
+<div class="inventory-wrap"><div class="inventory-label">EQUIPAMENTOS FORA DO LUGAR</div><div class="inventory" id="inventory">
+<div class="item" id="item-camera" data-item="camera" data-target="equipment" role="button" tabindex="0" aria-label="Arrastar câmera"><img class="object-img" src="assets/objects/camera.svg" alt=""><div class="emoji" hidden>📷</div><div class="name">CÂMERA</div></div>
+<div class="item" id="item-tripod" data-item="tripod" data-target="equipment" role="button" tabindex="0" aria-label="Arrastar tripé"><img class="object-img" src="assets/objects/tripod.svg" alt=""><div class="emoji tripod-icon" hidden>TRIPÉ</div><div class="name">TRIPÉ</div></div>
+<div class="item" id="item-blender" data-item="blender" role="button" tabindex="0" aria-label="Arrastar liquidificador"><img class="object-img" src="assets/objects/blender.svg" alt=""><div class="emoji" hidden>🧃</div><div class="name">LIQUIDIFICADOR</div></div>
+<div class="item" id="item-cables" data-item="cables" role="button" tabindex="0" aria-label="Arrastar cabos"><img class="object-img" src="assets/objects/cables.svg" alt=""><div class="emoji" hidden>〰️</div><div class="name">CABOS</div></div>
+<div class="item" id="item-box" data-item="box" role="button" tabindex="0" aria-label="Arrastar caixa"><img class="object-img" src="assets/objects/box.svg" alt=""><div class="emoji" hidden>📦</div><div class="name">CAIXA</div></div>
+<div class="item" id="item-mug" data-item="mug" role="button" tabindex="0" aria-label="Arrastar caneca"><img class="object-img" src="assets/objects/mug.svg" alt=""><div class="emoji" hidden>☕</div><div class="name">CANECA</div></div>
+</div></div>
+<footer><div class="footerrow"><div class="pending" id="pending">OBJETOS PENDENTES: 6</div><div class="actions"><button id="toggle-zones">MOSTRAR DESTINOS</button><button id="reset">REINICIAR</button></div></div><div class="hint">Arraste cada objeto até a área correspondente. As cenas iniciais usam os vídeos gerados; arraste os objetos para organizar o estúdio.</div></footer>
+</div>
+<script>
+(()=>{'use strict';
+const scene=document.getElementById('scene'), timeEl=document.getElementById('time'), pendingEl=document.getElementById('pending'), statusEl=document.getElementById('status');
+const items=[...document.querySelectorAll('.item')], zones=[...document.querySelectorAll('.dropzone')];
+let seconds=90, timer=null, completed=new Set(), dragged=null, offset={x:0,y:0}, zonesVisible=false, finished=false, paranormalShown=false;
+function renderTime(){timeEl.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}
+function startTimer(){if(timer||finished)return;timer=setInterval(()=>{seconds--;renderTime();if(seconds<=0){clearInterval(timer);timer=null;showNotice('TEMPO ESGOTADO','A visita chegou antes de terminar.','Tente novamente.');statusEl.textContent='TEMPO ESGOTADO';}},1000)}
+function showNotice(title,text,sub='HALLOWEEN.exe // CASO 02'){document.getElementById('notice-title').textContent=title;document.getElementById('notice-text').textContent=text;document.getElementById('notice-sub').textContent=sub;document.getElementById('continue').textContent=(title==='ESTÚDIO ORGANIZADO'||title==='Tudo no lugar.')?'CONTINUAR':'TENTAR NOVAMENTE';document.getElementById('notice').classList.add('show')}
+function hideNotice(){document.getElementById('notice').classList.remove('show')}
+let endingIndex=0, endingActive=false, endingTransitionTimer=null;
+const endingClips=['assets/videos/final-saida.mp4','assets/videos/final-paranormal.mp4'];
+const endingPlayer=document.getElementById('ending-player'), endingMedia=document.querySelector('#ending-player .ending-media'), endingVideos=[document.getElementById('ending-video-a'),document.getElementById('ending-video-b')], endingFallback=document.getElementById('ending-fallback'), endingFallbackText=document.getElementById('ending-fallback-text');
+const endingStep=document.getElementById('ending-step'), endingCaption=document.getElementById('ending-caption'), endingProgressFill=document.getElementById('ending-progress-fill');
+const endingInterstitial=document.getElementById('ending-interstitial'), interstitialTitle=document.getElementById('interstitial-title'), interstitialCopy=document.getElementById('interstitial-copy'), interstitialSystem=document.getElementById('interstitial-system');
+const endingLabels=[{step:'REGISTRO 01 / 02',caption:'Visita ao estúdio errado. Acontece com todo mundo. Até com quem não deveria estar aqui.'},{step:'REGISTRO 02 / 02',caption:'A verdadeira visita chegou.'}];
+function playEndingClip(index){
+  if(endingTransitionTimer){clearTimeout(endingTransitionTimer);endingTransitionTimer=null;}
+  endingInterstitial.classList.remove('show');
+  endingMedia.classList.remove('interstitial-active');
+  endingIndex=index;
+  const video=endingVideos[index];
+  endingVideos.forEach((v,i)=>{if(i!==index){v.pause();v.classList.remove('active');}});
+  endingFallback.classList.remove('show');
+  endingStep.textContent=endingLabels[index].step;
+  endingCaption.textContent=endingLabels[index].caption;
+  endingProgressFill.style.width='0%';
+  if(video.readyState>0){video.currentTime=0;}else{video.addEventListener('loadedmetadata',()=>{video.currentTime=0;},{once:true});}
+  video.muted=false;video.volume=1;video.classList.add('active');
+  const promise=video.play();
+  if(promise&&typeof promise.catch==='function') promise.catch(()=>{
+    endingFallbackText.textContent='Clique para reproduzir esta cena com áudio.';
+    endingFallback.classList.add('show');
+  });
+}
+function showEndingInterstitial(){
+  endingVideos.forEach(v=>{v.pause();v.classList.remove('active');});
+  endingFallback.classList.remove('show');
+  endingProgressFill.style.width='100%';
+  endingStep.textContent='ANÁLISE DE REGISTRO';
+  endingCaption.textContent='Alarme falso. Mas foram detectadas outras atividades estranhas.';
+  interstitialTitle.textContent='Alarme falso.';
+  interstitialCopy.textContent='';
+  interstitialSystem.textContent='';
+  endingMedia.classList.add('interstitial-active');
+  endingInterstitial.classList.add('show');
+  // A mensagem surge em etapas, como um alerta de sistema que se corrige sozinho.
+  endingTransitionTimer=setTimeout(()=>{
+    interstitialCopy.textContent='Mas foram detectadas outras atividades estranhas.';
+    endingTransitionTimer=setTimeout(()=>{
+      interstitialSystem.textContent='ANÁLISE DE REGISTRO INICIADA...';
+      endingTransitionTimer=setTimeout(()=>{endingTransitionTimer=null;playEndingClip(1);},1850);
+    },700);
+  },850);
+}
+function startEndingSequence(){
+  if(endingTransitionTimer){clearTimeout(endingTransitionTimer);endingTransitionTimer=null;}
+  endingActive=true;
+  endingPlayer.classList.add('show');
+  endingPlayer.setAttribute('aria-hidden','false');
+  playEndingClip(0);
+}
+endingVideos.forEach((video,index)=>{
+  video.addEventListener('timeupdate',()=>{if(endingActive&&index===endingIndex&&video.duration){endingProgressFill.style.width=(video.currentTime/video.duration*100)+'%';}});
+  video.addEventListener('ended',()=>{
+    if(!endingActive||index!==endingIndex)return;
+    if(endingIndex===0){showEndingInterstitial();return;}
+    endingActive=false;
+    endingVideos.forEach(v=>{v.pause();v.classList.remove('active');});
+    endingInterstitial.classList.remove('show');
+    endingPlayer.classList.remove('show');
+    endingPlayer.setAttribute('aria-hidden','true');
+    document.getElementById('final-screen').classList.add('show');
+  });
+});
+document.getElementById('ending-retry').addEventListener('click',()=>{
+  if(!endingActive)return;
+  playEndingClip(endingIndex);
+});
+function showParanormalEvent(){
+  if(paranormalShown)return;
+  paranormalShown=true;
+  hideNotice();
+  statusEl.textContent='REGISTRO FINAL';
+  showStory('TUDO NO LUGAR','Por um instante, o estúdio parece normal.\nMas a gravação de segurança registrou algo estranho.','HALLOWEEN.exe // REGISTRO DE SEGURANÇA','VER REGISTRO');
+  document.getElementById('story-action').onclick=()=>{
+    hideStory();
+    startEndingSequence();
+  };
+}
+function showStory(title,copy,tag='HALLOWEEN.exe // CASO 02',button='CONTINUAR'){
+  const card=document.getElementById('story-card');
+  document.getElementById('story-title').textContent=title;
+  document.getElementById('story-title').style.display=title?'block':'none';
+  document.getElementById('story-copy').textContent=copy;
+  document.getElementById('story-tag').textContent=tag;
+  const b=document.getElementById('story-action'); b.textContent=button; b.style.display=button?'inline-block':'none';
+  card.classList.add('show');
+}
+function hideStory(){document.getElementById('story-card').classList.remove('show');}
+
+function getPoint(e){const r=scene.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+const inventory=document.getElementById('inventory');
+function returnToInventory(item){item.classList.remove('dragging');item.style.position='relative';item.style.left='';item.style.top='';item.style.right='';item.style.bottom='';item.style.width='';item.style.height='';inventory.appendChild(item)}
+function placeInZone(item,target){const sr=scene.getBoundingClientRect(),r=target.getBoundingClientRect();const zoneItems=items.filter(i=>(i.dataset.target||i.dataset.item)===target.dataset.target);const slot=zoneItems.indexOf(item),count=zoneItems.length;scene.appendChild(item);item.style.position='absolute';const centerX=(r.left-sr.left+r.width*(slot+1)/(count+1)-item.offsetWidth/2)/sr.width*100;item.style.left=centerX+'%';item.style.top=((r.top-sr.top+r.height/2-item.offsetHeight/2)/sr.height*100)+'%';item.style.right='auto';item.style.bottom='auto';item.classList.remove('dragging');completed.add(item.dataset.item);item.classList.add('done');target.classList.add('show');if(zoneItems.every(i=>completed.has(i.dataset.item)))target.textContent='✓ CONCLUÍDO';pendingEl.textContent='OBJETOS PENDENTES: '+(items.length-completed.size);statusEl.textContent='PROGRESSO '+completed.size+'/'+items.length;if(completed.size===items.length){finished=true;if(timer)clearInterval(timer);timer=null;showNotice('Tudo no lugar.','A visita pode chegar.','TAREFA CONCLUÍDA')}}
+function beginDrag(e){if(finished||completed.has(e.currentTarget.dataset.item))return;startTimer();dragged=e.currentTarget;const r=dragged.getBoundingClientRect();offset.x=e.clientX-r.left;offset.y=e.clientY-r.top;dragged.style.position='fixed';dragged.style.left=r.left+'px';dragged.style.top=r.top+'px';dragged.style.width=r.width+'px';dragged.style.height=r.height+'px';dragged.style.right='auto';dragged.style.bottom='auto';document.body.appendChild(dragged);dragged.classList.add('dragging');dragged.setPointerCapture?.(e.pointerId);e.preventDefault()}
+function moveDrag(e){if(!dragged)return;dragged.style.left=(e.clientX-offset.x)+'px';dragged.style.top=(e.clientY-offset.y)+'px';zones.forEach(z=>{const r=z.getBoundingClientRect();z.classList.toggle('over',e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)})}
+function endDrag(e){if(!dragged)return;const item=dragged;const zone=zones.find(z=>{const r=z.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom});zones.forEach(z=>z.classList.remove('over'));dragged=null;if(zone&&zone.dataset.target===(item.dataset.target||item.dataset.item)){placeInZone(item,zone)}else{returnToInventory(item);if(zone){statusEl.textContent='LOCAL INCORRETO';setTimeout(()=>{if(statusEl.textContent==='LOCAL INCORRETO')statusEl.textContent='SISTEMA ATIVO'},900)}}}
+items.forEach(item=>{item.addEventListener('pointerdown',beginDrag);item.addEventListener('pointermove',moveDrag);item.addEventListener('pointerup',endDrag);item.addEventListener('pointercancel',endDrag);item.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(finished||completed.has(item.dataset.item))return;startTimer();const target=zones.find(z=>z.dataset.target===(item.dataset.target||item.dataset.item));if(target)placeInZone(item,target)}})});
+document.getElementById('toggle-zones').addEventListener('click',()=>{zonesVisible=!zonesVisible;zones.forEach(z=>{if(!z.textContent.includes('CONCLUÍDO'))z.classList.toggle('show',zonesVisible)});document.getElementById('toggle-zones').textContent=zonesVisible?'OCULTAR DESTINOS':'MOSTRAR DESTINOS'});
+function reset(){if(timer)clearInterval(timer);timer=null;if(endingTransitionTimer){clearTimeout(endingTransitionTimer);endingTransitionTimer=null;}endingActive=false;endingInterstitial.classList.remove('show');endingVideos.forEach(v=>{v.pause();v.classList.remove('active');});endingPlayer.classList.remove('show');endingPlayer.setAttribute('aria-hidden','true');endingFallback.classList.remove('show');endingProgressFill.style.width='0%';introTransition.classList.remove('on');seconds=90;completed.clear();finished=false;paranormalShown=false;document.getElementById('final-screen').classList.remove('show');hideStory();document.getElementById('story-action').style.display='inline-block';renderTime();pendingEl.textContent='OBJETOS PENDENTES: 6';statusEl.textContent='SISTEMA ATIVO';items.forEach(i=>{i.classList.remove('done','dragging','returned');i.style.position='relative';i.style.left='';i.style.top='';i.style.right='';i.style.bottom='';i.style.width='';i.style.height='';inventory.appendChild(i)});zones.forEach(z=>{z.classList.remove('over','show');z.textContent=({equipment:'BANCADA DE EQUIPAMENTOS',blender:'MESA DE PRODUTO',cables:'CARRINHO DE EQUIPAMENTOS',box:'CAIXAS / ARMAZENAMENTO',mug:'MESA DE APOIO'})[z.dataset.target]});zonesVisible=false;scene.classList.remove('event-glitch');document.getElementById('toggle-zones').textContent='MOSTRAR DESTINOS';hideNotice()}
+document.getElementById('reset').addEventListener('click',reset);document.getElementById('continue').addEventListener('click',()=>{
+  const title=document.getElementById('notice-title').textContent;
+  if(title==='Tudo no lugar.'){showParanormalEvent();return}
+  if(title==='A bancada não estava vazia?'){hideNotice();statusEl.textContent='';return}
+  if(finished||seconds<=0){reset();return} hideNotice();
+});renderTime();
+const intro=document.getElementById('intro'), introVideos=[document.getElementById('intro-video-a'),document.getElementById('intro-video-b')], introCaption=document.getElementById('intro-caption');
+let activeIntroPlayer=0, introVideo=introVideos[activeIntroPlayer];
+const introStep=document.getElementById('intro-step'), introProgress=document.getElementById('intro-progress'), introTransition=document.getElementById('intro-transition');
+const introCard=document.getElementById('intro-card'), cardEyebrow=document.getElementById('card-eyebrow'), cardTitle=document.getElementById('card-title'), cardCopy=document.getElementById('card-copy'), cardMessage=document.getElementById('card-message'), cardMessageCopy=document.getElementById('card-message-copy');
+const fullVisitorMessage='Pessoal, visita em 3 minutos. Deixem o estúdio organizado, por favor.';
+introVideos.forEach(v=>{v.muted=true;v.volume=0;v.playsInline=true;});
+const introTimeline=[
+ {type:'card',kind:'coffee',label:'A equipe faz uma pausa para o café.',step:'CARTELA 01 / 09'},
+ {type:'video',src:'assets/videos/cafe-aberto.mp4',label:'A equipe aproveita a pausa.',step:'CENA 01 / 09'},
+ {type:'video',src:'assets/videos/cafe-close.mp4',label:'A conversa segue tranquila.',step:'CENA 02 / 09'},
+ {type:'video',src:'assets/videos/cafe-detalhe.mp4',label:'Café e conversa no estúdio.',step:'CENA 03 / 09'},
+ {type:'video',src:'assets/videos/celular.mp4',label:'O celular vibra sobre a mesa.',step:'CENA 04 / 09'},
+ {type:'card',kind:'message',label:'Uma mensagem muda os planos.',step:'CARTELA 05 / 09'},
+ {type:'video',src:'assets/videos/reacao.mp4',label:'A equipe percebe a urgência.',step:'CENA 06 / 09'},
+ {type:'video',src:'assets/videos/correria.mp4',label:'Todos começam a organizar o estúdio.',step:'CENA 07 / 09'},
+ {type:'card',kind:'objective',label:'Agora é hora de organizar o estúdio.',step:'OBJETIVO / 09'}
+];
+let introIndex=0, introMode='card', messageTypingTimer=null, titleTypingTimer=null, videoCutTriggered=false, introLoadToken=0;
+function stopMessageTyping(){if(messageTypingTimer!==null){clearInterval(messageTypingTimer);messageTypingTimer=null;}cardMessageCopy.classList.remove('typing');}
+function stopTitleTyping(){if(titleTypingTimer!==null){clearInterval(titleTypingTimer);titleTypingTimer=null;}cardTitle.classList.remove('typing');}
+function typeText(el,text,which='message',speed=34){if(which==='title')stopTitleTyping();else stopMessageTyping();el.textContent='';el.classList.add('typing');let n=0;const timer=setInterval(()=>{n=Math.min(n+1,text.length);el.textContent=text.slice(0,n);if(n>=text.length){clearInterval(timer);if(which==='title'){titleTypingTimer=null;el.classList.remove('typing')}else{messageTypingTimer=null;el.classList.remove('typing')}}},speed);if(which==='title')titleTypingTimer=timer;else messageTypingTimer=timer;}
+function stopAllTyping(){stopMessageTyping();stopTitleTyping();}
+function updateIntroProgress(){const total=introTimeline.length;const step=introTimeline[introIndex];introStep.textContent=step.type==='video'?'':step.step;introProgress.style.width=((introIndex+1)/total*100)+'%';introCaption.textContent=step.label;}
+function setCard(kind){introMode='card';introLoadToken++;introVideos.forEach(v=>v.pause());introVideos.forEach(v=>v.classList.remove('active'));introVideo.style.visibility='hidden';introCard.classList.add('show');introCard.classList.toggle('photo-card',kind==='coffee');document.querySelector('.intro-card-inner').classList.toggle('no-rail',kind==='message');cardMessage.hidden=true;cardMessageCopy.textContent='';cardCopy.hidden=false;stopAllTyping();document.getElementById('start-game').style.display='inline-block';document.getElementById('start-game').disabled=false;
+ if(kind==='coffee'){
+   cardEyebrow.textContent='MENSAGEM INTERNA · 15:32';cardTitle.textContent='';cardCopy.textContent='';cardMessage.hidden=true;
+   typeText(cardTitle,'Pessoal, pausa para o café?!','title',55);
+   cardCopy.textContent='';document.getElementById('start-game').textContent='IR PARA O CAFÉ';
+ } else if(kind==='message'){
+   cardEyebrow.textContent='NOTIFICAÇÃO NO CELULAR';cardTitle.textContent='Nova mensagem';cardCopy.hidden=true;cardMessage.hidden=false;cardMessage.style.animation='none';void cardMessage.offsetWidth;cardMessage.style.animation='';typeText(cardMessageCopy,fullVisitorMessage,'message',28);document.getElementById('start-game').textContent='CONTINUAR';
+ } else {
+   cardEyebrow.textContent='TRÊS MINUTOS NO RELÓGIO';cardTitle.textContent='Agora é com você.';cardCopy.textContent='A equipe começou a arrumar o estúdio, mas ainda há coisas fora do lugar. Organize os seis objetos antes que a visita chegue.';cardMessage.hidden=true;document.getElementById('start-game').textContent='COMEÇAR O JOGO';
+ }
+}
+function preloadIntroSource(video,src){if(!src)return;if(video.getAttribute('src')!==src){video.pause();video.setAttribute('src',src);video.load();}}
+function prepareNextIntroVideo(){let nextVideoStep=null;for(let i=introIndex+1;i<introTimeline.length;i++){if(introTimeline[i].type==='video'){nextVideoStep=introTimeline[i];break;}if(introTimeline[i].kind==='objective')break;}if(nextVideoStep){const standby=introVideos[1-activeIntroPlayer];preloadIntroSource(standby,nextVideoStep.src);}}
+function playVideo(step){
+ videoCutTriggered=false;introMode='video';introCard.classList.remove('show');introVideos.forEach(v=>v.style.visibility='visible');introVideos.forEach(v=>v.controls=false);
+ const targetIndex=1-activeIntroPlayer,target=introVideos[targetIndex],old=introVideo,token=++introLoadToken;
+ if(target.getAttribute('src')!==step.src)preloadIntroSource(target,step.src);
+ target.muted=true;target.volume=0;target.currentTime=0;
+ const startBtn=document.getElementById('start-game');startBtn.style.display='none';startBtn.textContent='REPRODUZIR CENA';startBtn.disabled=true;
+ const startTarget=()=>{if(token!==introLoadToken||introMode!=='video')return;target.play().then(()=>{if(token!==introLoadToken)return;old.pause();old.classList.remove('active');target.classList.add('active');activeIntroPlayer=targetIndex;introVideo=target;prepareNextIntroVideo();}).catch(()=>{startBtn.style.display='inline-block';startBtn.disabled=false;});};
+ if(target.readyState>=3)startTarget();else{target.addEventListener('canplay',startTarget,{once:true});target.addEventListener('error',()=>{if(token===introLoadToken){startBtn.style.display='inline-block';startBtn.disabled=false;}},{once:true});}
+}
+function showIntroStep(i){stopAllTyping();if(i>=introTimeline.length){closeIntro();return;}introIndex=i;const step=introTimeline[i];updateIntroProgress();if(step.type==='card'){setCard(step.kind);introTransition.classList.remove('on')}else playVideo(step);}
+function transitionIntroTo(i){showIntroStep(i);}
+introVideos.forEach(video=>{
+ video.addEventListener('timeupdate',()=>{if(video===introVideo&&introMode==='video'){const step=introTimeline[introIndex];if(!videoCutTriggered&&step&&step.type==='video'&&step.maxDuration&&video.currentTime>=step.maxDuration){videoCutTriggered=true;transitionIntroTo(introIndex+1);}}});
+ video.addEventListener('ended',()=>{if(video===introVideo&&introMode==='video'&&!videoCutTriggered){videoCutTriggered=true;transitionIntroTo(introIndex+1);}});
+});
+function advanceIntro(){if(introMode!=='card')return;stopAllTyping();if(introTimeline[introIndex].kind==='objective'){closeIntro();return;}showIntroStep(introIndex+1);}
+function closeIntro(){stopAllTyping();introVideos.forEach(v=>v.pause());intro.style.display='none';introCard.classList.remove('show');startTimer();}
+document.getElementById('start-game').addEventListener('click',()=>{if(introMode==='card')advanceIntro();else if(introVideo.paused){introVideo.play().then(()=>{document.getElementById('start-game').style.display='none';document.getElementById('start-game').disabled=true;}).catch(()=>{document.getElementById('start-game').style.display='inline-block';document.getElementById('start-game').disabled=false;});}});
+
+showIntroStep(0);
+})();
+</script></body></html>
